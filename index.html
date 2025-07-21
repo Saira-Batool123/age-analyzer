@@ -1,0 +1,1236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Age Analyzer</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            color: #fff;
+            margin: 0;
+            background: url('images/sunset.jpg') no-repeat center center fixed;
+            background-size: cover;
+            animation: backgroundPan 20s infinite linear;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        body.dark-mode {
+            background: #1a1a1a;
+            color: #fff;
+        }
+
+        body.light-mode {
+            background: url('images/sunset.jpg') no-repeat center center fixed;
+            background-size: cover;
+        }
+
+        @keyframes backgroundPan {
+            0% { background-position: 0% 0%; }
+            50% { background-position: 100% 100%; }
+            100% { background-position: 0% 0%; }
+        }
+
+        .header {
+            text-align: center;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.6);
+            position: relative;
+        }
+
+        .header h1 {
+            font-size: 2.8em;
+            font-weight: bold;
+            color: #feca57;
+            text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.8), 0 0 10px #feca57;
+            animation: scaleIn 1s ease-in-out;
+            margin: 0;
+        }
+
+        .toggle-mode {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: #fff;
+            color: #333;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.3s, transform 0.2s;
+        }
+
+        .toggle-mode:hover {
+            background: #ddd;
+            transform: scale(1.05);
+        }
+
+        .toggle-mode.dark {
+            background: #333;
+            color: #fff;
+        }
+
+        @keyframes scaleIn {
+            0% { transform: scale(0.8); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .navbar {
+            background: rgba(0, 0, 0, 0.7);
+            padding: 12px;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .tab {
+            padding: 12px 25px;
+            color: white;
+            text-align: center;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: background 0.3s, transform 0.2s;
+            font-weight: bold;
+        }
+
+        .tab:hover { background: #c0392b; transform: scale(1.05); }
+        .tab.active { background: #2ecc71; transform: scale(1.05); }
+
+        .content {
+            flex: 1;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+
+        .form-box {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 25px;
+            border-radius: 12px;
+            max-width: 400px;
+            width: 100%;
+            color: #333;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.4);
+            position: relative;
+            transition: background 0.3s, color 0.3s, border-color 0.3s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            border: 4px solid rgba(0, 0, 0, 0.1);
+        }
+
+        #home .form-box {
+            flex-direction: row;
+            justify-content: center;
+            flex-wrap: wrap;
+            max-width: 550px;
+        }
+
+        #home .form-box { border-color: #e74c3c; }
+        #age .form-box { border-color: #3498db; }
+        #health .form-box { border-color: #f1c40f; }
+        #milestone .form-box { border-color: #e67e22; }
+        #expectancy .form-box { border-color: #9b59b6; }
+        #contact .form-box { border-color: #2ecc71; }
+
+        body.dark-mode .form-box {
+            background: rgba(50, 50, 50, 0.95);
+            color: #fff;
+        }
+
+        body.dark-mode #home .form-box { border-color: #c0392b; }
+        body.dark-mode #age .form-box { border-color: #5d9cec; }
+        body.dark-mode #health .form-box { border-color: #f7dc6f; }
+        body.dark-mode #milestone .form-box { border-color: #eb984e; }
+        body.dark-mode #expectancy .form-box { border-color: #af7ac5; }
+        body.dark-mode #contact .form-box { border-color: #52be80; }
+
+        .form-box h2 {
+            margin-top: 0;
+            text-align: center;
+            font-size: 1.8em;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+
+        #welcome-title {
+            font-size: 2em;
+            font-weight: bold;
+            background: linear-gradient(to right, #e74c3c, #f39c12);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        body.dark-mode #welcome-title {
+            background: linear-gradient(to right, #ff7675, #fab1a0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .form-box form {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .form-box input,
+        .form-box select,
+        .form-box textarea {
+            width: 80%;
+            max-width: 280px;
+            padding: 10px;
+            border: 2px solid;
+            border-radius: 8px;
+            box-sizing: border-box;
+            background: #f8f8f8;
+            color: #333;
+            font-size: 1em;
+            transition: border-color 0.3s, box-shadow 0.3s, background 0.3s;
+            outline: none;
+        }
+
+        #age-form input { border-color: #3498db; }
+        #health-form input { border-color: #f1c40f; }
+        #milestone-form input { border-color: #e67e22; }
+        #expectancy-form input, #expectancy-form select { border-color: #9b59b6; }
+        #contact-form input, #contact-form textarea { border-color: #2ecc71; }
+
+        .form-box input:focus,
+        .form-box select:focus,
+        .form-box textarea:focus {
+            border-color: #2ecc71;
+            box-shadow: 0 0 8px rgba(46, 204, 113, 0.5);
+        }
+
+        body.dark-mode .form-box input,
+        body.dark-mode .form-box select,
+        body.dark-mode .form-box textarea {
+            background: #444;
+            color: #eee;
+            border: 2px solid;
+        }
+
+        body.dark-mode #age-form input { border-color: #5d9cec; }
+        body.dark-mode #health-form input { border-color: #f7dc6f; }
+        body.dark-mode #milestone-form input { border-color: #eb984e; }
+        body.dark-mode #expectancy-form input, body.dark-mode #expectancy-form select { border-color: #af7ac5; }
+        body.dark-mode #contact-form input, body.dark-mode #contact-form textarea { border-color: #52be80; }
+
+        body.dark-mode .form-box input:focus,
+        body.dark-mode .form-box select:focus,
+        body.dark-mode .form-box textarea:focus {
+            border-color: #2ecc71;
+            box-shadow: 0 0 8px rgba(46, 204, 113, 0.5);
+        }
+
+        .form-box button {
+            width: 80%;
+            max-width: 280px;
+            padding: 12px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            color: white;
+            transition: background 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+            font-size: 1.1em;
+        }
+
+        .form-box button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 10px rgba(0, 0, 0, 0.3);
+            opacity: 1;
+        }
+
+        .result {
+            margin-top: 20px;
+            font-weight: bold;
+            text-align: center;
+            width: 100%;
+            padding-top: 15px;
+            border-top: 1px solid rgba(0,0,0,0.1);
+        }
+
+        body.dark-mode .result {
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .error { color: red; }
+        .loading { display: none; text-align: center; color: #2ecc71; font-size: 1.2em; }
+
+        #home-tab { background: #e74c3c; }
+        #age-tab { background: #3498db; }
+        #health-tab { background: #f1c40f; }
+        #milestone-tab { background: #e67e22; }
+        #expectancy-tab { background: #9b59b6; }
+        #contact-tab { background: #2ecc71; }
+
+        .content-section { display: none; }
+        .content-section.active { display: block; animation: fadeIn 0.5s; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        #welcome-text-container {
+            flex: 1;
+            min-width: 200px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding-right: 20px;
+        }
+
+        #welcome-message-paragraph {
+            font-size: 1em;
+            color: #555;
+            text-align: center;
+            margin-bottom: 0;
+            line-height: 1.6;
+            max-width: 400px;
+        }
+
+        body.dark-mode #welcome-message-paragraph {
+            color: #ddd;
+        }
+
+        .clock-container {
+            width: 80px;
+            height: 80px;
+            border: 2px solid #333;
+            border-radius: 50%;
+            position: relative;
+            margin: 10px auto;
+            box-shadow: 0 0 8px rgba(0, 0, 0, 0.3);
+            background-color: #fff;
+            flex-shrink: 0;
+        }
+
+        body.dark-mode .clock-container {
+            border-color: #666;
+            background-color: #222;
+            box-shadow: 0 0 8px rgba(255, 255, 255, 0.1);
+        }
+
+        .clock-center {
+            width: 4px;
+            height: 4px;
+            background-color: #e74c3c;
+            border-radius: 50%;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 10;
+        }
+
+        .hand {
+            position: absolute;
+            bottom: 50%;
+            left: 50%;
+            transform-origin: bottom;
+            background-color: #333;
+            border-radius: 1px;
+            z-index: 5;
+        }
+
+        .hour-hand {
+            width: 1.5px;
+            height: 24px;
+            background-color: #333;
+            transform: translateX(-50%) rotate(0deg);
+        }
+
+        .minute-hand {
+            width: 1px;
+            height: 32px;
+            background-color: #333;
+            transform: translateX(-50%) rotate(0deg);
+        }
+
+        .second-hand {
+            width: 1px;
+            height: 37px;
+            background-color: #9b59b6;
+            transform: translateX(-50%) rotate(0deg);
+        }
+
+        .number {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            font-size: 0.6em;
+            font-weight: bold;
+            color: #333;
+            transform-origin: center;
+            line-height: 80px;
+        }
+
+        body.dark-mode .number {
+            color: #eee;
+        }
+
+        .number.num1 { transform: rotate(30deg) translateY(-33px); }
+        .number.num2 { transform: rotate(60deg) translateY(-33px); }
+        .number.num3 { transform: rotate(90deg) translateY(-33px); }
+        .number.num4 { transform: rotate(120deg) translateY(-33px); }
+        .number.num5 { transform: rotate(150deg) translateY(-33px); }
+        .number.num6 { transform: rotate(180deg) translateY(-33px); }
+        .number.num7 { transform: rotate(210deg) translateY(-33px); }
+        .number.num8 { transform: rotate(240deg) translateY(-33px); }
+        .number.num9 { transform: rotate(270deg) translateY(-33px); }
+        .number.num10 { transform: rotate(300deg) translateY(-33px); }
+        .number.num11 { transform: rotate(330deg) translateY(-33px); }
+        .number.num12 { transform: rotate(0deg) translateY(-33px); }
+
+        .expectancy-number {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            font-size: 0.6em;
+            font-weight: bold;
+            color: #333;
+            transform-origin: center;
+            line-height: 80px;
+        }
+
+        body.dark-mode .expectancy-number {
+            color: #eee;
+        }
+
+        /* Original numbers for expectancy clock - keeping them as is for visual labels */
+        .expectancy-number.num0 { transform: rotate(0deg) translateY(-33px); }
+        .expectancy-number.num20 { transform: rotate(72deg) translateY(-33px); }
+        .expectancy-number.num40 { transform: rotate(144deg) translateY(-33px); }
+        .expectancy-number.num60 { transform: rotate(216deg) translateY(-33px); }
+        .expectancy-number.num80 { transform: rotate(288deg) translateY(-33px); }
+        .expectancy-number.num100 { transform: rotate(360deg) translateY(-33px); }
+
+
+        .milestone-number {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            font-size: 0.6em;
+            font-weight: bold;
+            color: #333;
+            transform-origin: center;
+            line-height: 80px;
+        }
+
+        body.dark-mode .milestone-number {
+            color: #eee;
+        }
+
+        /* Adjust positions to better align with the numbers 0, 91, 182, 273 */
+        .milestone-number.num0 { transform: rotate(0deg) translateY(-33px); }
+        .milestone-number.num91 { transform: rotate(90deg) translateY(-33px); }
+        .milestone-number.num182 { transform: rotate(180deg) translateY(-33px); }
+        .milestone-number.num273 { transform: rotate(270deg) translateY(-33px); }
+
+
+        .clock-text {
+            position: absolute;
+            font-size: 0.8em;
+            font-weight: bold;
+            color: #333;
+            text-align: center;
+            line-height: 1.2;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        body.dark-mode .clock-text {
+            color: #eee;
+        }
+
+        .graph-container {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            margin-top: 10px;
+            padding-top: 0px;
+            border-top: none;
+            gap: 20px;
+        }
+
+        #expectancy-chart-container, #milestone-visual-container {
+            border-top: 1px solid rgba(0, 0, 0, 0.1);
+            padding-top: 10px;
+        }
+
+        body.dark-mode #expectancy-chart-container, body.dark-mode #milestone-visual-container {
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .doughnut-chart-container {
+            position: relative;
+            width: 200px;
+            height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .chart-label {
+            position: absolute;
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #555;
+            text-align: center;
+            line-height: 1.2;
+        }
+
+        body.dark-mode .chart-label {
+            color: #ddd;
+        }
+
+        @media (max-width: 768px) {
+            .form-box {
+                flex-direction: column;
+                max-width: 350px;
+            }
+
+            #home .form-box {
+                max-width: 500px;
+                flex-direction: column;
+            }
+
+            #welcome-text-container {
+                min-width: unset;
+                padding-right: 0;
+            }
+
+            .clock-container {
+                margin-top: 20px;
+            }
+
+            .graph-container {
+                flex-direction: column;
+            }
+
+            .form-box input,
+            .form-box select,
+            .form-box textarea,
+            .form-box button {
+                width: 90%;
+                max-width: 300px;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .navbar { flex-direction: column; align-items: center; }
+            .tab { width: 80%; margin: 5px 0; }
+            .form-box { max-width: 100%; padding: 15px; }
+            .toggle-mode { top: 10px; right: 10px; }
+            .doughnut-chart-container {
+                width: 150px;
+                height: 150px;
+            }
+            .chart-label { font-size: 1.2em; }
+        }
+    </style>
+</head>
+<body class="light-mode">
+    <div class="header">
+        <h1>Age Analyzer</h1>
+        <button class="toggle-mode" onclick="toggleMode()">Dark Mode</button>
+    </div>
+    <div class="container">
+        <div class="navbar">
+            <div class="tab active" id="home-tab">Home</div>
+            <div class="tab" id="age-tab">Age Calculator</div>
+            <div class="tab" id="health-tab">Health Tracker</div>
+            <div class="tab" id="milestone-tab">Life Milestone</div>
+            <div class="tab" id="expectancy-tab">Life Expectancy</div>
+            <div class="tab" id="contact-tab">Contact</div>
+        </div>
+        <div class="content">
+            <div class="content-section active" id="home">
+                <div class="form-box">
+                    <div id="welcome-text-container">
+                        <h2 id="welcome-title">Welcome to Age Analyzer!</h2>
+                        <p id="welcome-message-paragraph">
+                            Embark on a fascinating journey through your personal timeline.
+                        </p>
+                    </div>
+                    <div class="clock-container">
+                        <div class="clock-center"></div>
+                        <div class="hand hour-hand" id="hourHand"></div>
+                        <div class="hand minute-hand" id="minuteHand"></div>
+                        <div class="hand second-hand" id="secondHand"></div>
+                        <div class="number num1">1</div>
+                        <div class="number num2">2</div>
+                        <div class="number num3">3</div>
+                        <div class="number num4">4</div>
+                        <div class="number num5">5</div>
+                        <div class="number num6">6</div>
+                        <div class="number num7">7</div>
+                        <div class="number num8">8</div>
+                        <div class="number num9">9</div>
+                        <div class="number num10">10</div>
+                        <div class="number num11">11</div>
+                        <div class="number num12">12</div>
+                    </div>
+                </div>
+            </div>
+            <div class="content-section" id="age">
+                <div class="form-box">
+                    <h2>Age Calculator</h2>
+                    <form id="age-form">
+                        <input type="text" id="name" placeholder="Your Name" required>
+                        <input type="date" id="dob" placeholder="Date of Birth" required>
+                        <button type="submit" style="background: #3498db;">Calculate Age</button>
+                    </form>
+                    <div class="result" id="age-result"></div>
+                    <div class="loading" id="age-loading">Calculating...</div>
+                </div>
+            </div>
+            <div class="content-section" id="health">
+                <div class="form-box">
+                    <h2>Health Tracker</h2>
+                    <form id="bmi-form">
+                        <input type="number" id="weight" placeholder="Weight (kg)" step="0.1" min="0" required>
+                        <input type="number" id="height" placeholder="Height (cm)" step="0.1" min="0" required>
+                        <button type="submit" style="background: #f1c40f;">Calculate Health</button>
+                    </form>
+                    <div class="result" id="bmi-result"></div>
+                    <div class="loading" id="health-loading">Calculating...</div>
+                </div>
+            </div>
+            <div class="content-section" id="milestone">
+                <div class="form-box">
+                    <h2>Life Milestone</h2>
+                    <form id="birthday-form">
+                        <input type="text" id="birthday-name" placeholder="Your Name" required>
+                        <input type="date" id="birthday-dob" placeholder="Date of Birth" required>
+                        <button type="submit" style="background: #e67e22;">Check Milestone</button>
+                    </form>
+                    <div class="result" id="birthday-result"></div>
+                    <div class="clock-container" id="milestone-clock" style="display: none;">
+                        <div class="clock-center"></div>
+                        <div class="hand second-hand" id="milestoneNeedle"></div>
+                        <div class="milestone-number num0" style="transform: rotate(0deg) translateY(-33px);">0</div>
+                        <div class="milestone-number num91" style="transform: rotate(90deg) translateY(-33px);">91</div>
+                        <div class="milestone-number num182" style="transform: rotate(180deg) translateY(-33px);">182</div>
+                        <div class="milestone-number num273" style="transform: rotate(270deg) translateY(-33px);">273</div>
+                    </div>
+                    <div class="loading" id="milestone-loading">Calculating...</div>
+                    <div class="graph-container" id="milestone-visual-container" style="display: none;">
+                        <div class="doughnut-chart-container">
+                            <canvas id="milestoneChart"></canvas>
+                            <div class="chart-label" id="milestoneChartLabel"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="content-section" id="expectancy">
+                <div class="form-box">
+                    <h2>Life Expectancy</h2>
+                    <form id="expectancy-form">
+                        <input type="text" id="expectancy-name" placeholder="Your Name" required>
+                        <input type="date" id="expectancy-dob" placeholder="Date of Birth" required>
+                        <select id="zodiac" required>
+                            <option value="">Select Zodiac Sign</option>
+                            <option value="aries(70-80)">Aries (70-80)</option>
+                            <option value="taurus(75-85)">Taurus (75-85)</option>
+                            <option value="gemini(70-80)">Gemini (70-80)</option>
+                            <option value="cancer(75-85)">Cancer (75-85)</option>
+                            <option value="leo(70-80)">Leo (70-80)</option>
+                            <option value="virgo(75-90)">Virgo (75-90)</option>
+                            <option value="libra(70-85)">Libra (70-85)</option>
+                            <option value="scorpio(75-90)">Scorpio (75-90)</option>
+                            <option value="sagittarius(70-80)">Sagittarius (70-80)</option>
+                            <option value="capricorn(75-85)">Capricorn (75-85)</option>
+                            <option value="aquarius(70-80)">Aquarius (70-80)</option>
+                            <option value="pisces(75-90)">Pisces (75-90)</option>
+                        </select>
+                        <button type="submit" style="background: #9b59b6;">Estimate Life</button>
+                    </form>
+                    <div class="result" id="expectancy-result"></div>
+                    <div class="loading" id="expectancy-loading">Estimating...</div>
+                    <div class="clock-container" id="expectancy-clock" style="display: none;">
+                        <div class="clock-center"></div>
+                        <div class="hand second-hand" id="expectancyNeedle"></div>
+                        <div class="expectancy-number num0">0</div>
+                        <div class="expectancy-number num20">20</div>
+                        <div class="expectancy-number num40">40</div>
+                        <div class="expectancy-number num60">60</div>
+                        <div class="expectancy-number num80">80</div>
+                        <div class="expectancy-number num100">100</div>
+                    </div>
+                    <div class="graph-container" id="expectancy-chart-container" style="display: none;">
+                        <div class="doughnut-chart-container">
+                            <canvas id="expectancyChart"></canvas>
+                            <div class="chart-label" id="expectancyChartLabel"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="content-section" id="contact">
+                <div class="form-box">
+                    <h2>Contact</h2>
+                    <form id="contact-form">
+                        <input type="text" id="contact-name" placeholder="Your Name" required>
+                        <input type="email" id="email" placeholder="Your Email" required>
+                        <textarea id="message" placeholder="Your Message" rows="4" required></textarea>
+                        <button type="submit" style="background: #2ecc71;">Send Feedback</button>
+                    </form>
+                    <div class="result" id="contact-result"></div>
+                    <div class="loading" id="contact-loading">Sending...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        // Global Chart.js instances to manage their lifecycle
+        let milestoneChartInstance = null;
+        let expectancyChartInstance = null;
+
+        // Function to toggle dark/light mode
+        function toggleMode() {
+            const body = document.body;
+            const toggleButton = document.querySelector('.toggle-mode');
+            if (body.classList.contains('light-mode')) {
+                body.classList.remove('light-mode');
+                body.classList.add('dark-mode');
+                toggleButton.textContent = 'Light Mode';
+                toggleButton.classList.add('dark');
+            } else {
+                body.classList.remove('dark-mode');
+                body.classList.add('light-mode');
+                toggleButton.textContent = 'Dark Mode';
+                toggleButton.classList.remove('dark');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const tabs = document.querySelectorAll('.tab');
+            const sections = document.querySelectorAll('.content-section');
+
+            if (!tabs.length || !sections.length) {
+                console.error('Tabs or content sections not found');
+                return;
+            }
+
+            const hourHand = document.getElementById('hourHand');
+            const minuteHand = document.getElementById('minuteHand');
+            const secondHand = document.getElementById('secondHand');
+
+            // Function to update the main analog clock (current time)
+            function updateMainClock() {
+                const now = new Date(); // Use current real-world time for the main clock
+                const seconds = now.getSeconds();
+                const minutes = now.getMinutes();
+                const hours = now.getHours();
+
+                const secondDegrees = seconds * 6; // 360 degrees / 60 seconds
+                const minuteDegrees = (minutes * 6) + (seconds * 0.1); // 360/60 minutes + 6 degrees per minute, plus 0.1 for second progression
+                const hourDegrees = (hours % 12 * 30) + (minutes * 0.5); // 360/12 hours + 30 degrees per hour, plus 0.5 for minute progression
+
+                if (hourHand && minuteHand && secondHand) {
+                    hourHand.style.transform = `translateX(-50%) rotate(${hourDegrees}deg)`;
+                    minuteHand.style.transform = `translateX(-50%) rotate(${minuteDegrees}deg)`;
+                    secondHand.style.transform = `translateX(-50%) rotate(${secondDegrees}deg)`;
+                }
+            }
+
+            // Initial call and interval for the main clock
+            updateMainClock();
+            setInterval(updateMainClock, 1000); // Update every second
+
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    tabs.forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    sections.forEach(s => s.classList.remove('active'));
+                    const sectionId = tab.id.replace('-tab', '');
+                    const section = document.getElementById(sectionId);
+                    if (section) section.classList.add('active');
+
+                    // Hide all specific visuals when switching tabs
+                    document.getElementById('milestone-visual-container').style.display = 'none';
+                    document.getElementById('expectancy-chart-container').style.display = 'none';
+                    document.getElementById('milestone-clock').style.display = 'none';
+                    document.getElementById('expectancy-clock').style.display = 'none';
+
+                    // Destroy Chart.js instances if they exist
+                    if (milestoneChartInstance) {
+                        milestoneChartInstance.destroy();
+                        milestoneChartInstance = null;
+                    }
+                    if (expectancyChartInstance) {
+                        expectancyChartInstance.destroy();
+                        expectancyChartInstance = null;
+                    }
+
+                    // Clear results and loading messages when switching tabs
+                    document.querySelectorAll('.result').forEach(el => {
+                        el.innerHTML = '';
+                        el.style.display = 'block'; // Ensure result area is visible but empty
+                        el.classList.remove('error');
+                    });
+                    document.querySelectorAll('.loading').forEach(el => {
+                        el.style.display = 'none';
+                    });
+                });
+            });
+
+            function showLoading(resultId, loadingId) {
+                const resultElement = document.getElementById(resultId);
+                const loadingElement = document.getElementById(loadingId);
+                if (!resultElement || !loadingElement) {
+                    console.error(`Result or loading element not found: ${resultId}, ${loadingId}`);
+                    return;
+                }
+                resultElement.style.display = 'none'; // Hide result
+                loadingElement.style.display = 'block'; // Show loading
+
+                // Ensure specific clocks/charts are hidden during loading
+                if (resultId === 'birthday-result') {
+                    document.getElementById('milestone-clock').style.display = 'none';
+                    document.getElementById('milestone-visual-container').style.display = 'none';
+                    if (milestoneChartInstance) {
+                        milestoneChartInstance.destroy();
+                        milestoneChartInstance = null;
+                    }
+                } else if (resultId === 'expectancy-result') {
+                    document.getElementById('expectancy-chart-container').style.display = 'none';
+                    document.getElementById('expectancy-clock').style.display = 'none';
+                    if (expectancyChartInstance) {
+                        expectancyChartInstance.destroy();
+                        expectancyChartInstance = null;
+                    }
+                }
+            }
+
+            function hideLoading(resultId, loadingId) {
+                const resultElement = document.getElementById(resultId);
+                const loadingElement = document.getElementById(loadingId);
+                if (resultElement) resultElement.style.display = 'block'; // Show result
+                if (loadingElement) loadingElement.style.display = 'none'; // Hide loading
+            }
+
+
+            function createDoughnutChart(canvasId, labelId, percentage, labelText, color1, color2, chartInstanceVariable) {
+                const canvas = document.getElementById(canvasId);
+                if (!canvas) {
+                    console.error(`Canvas element ${canvasId} not found`);
+                    return null;
+                }
+                const ctx = canvas.getContext('2d');
+                if (!ctx) {
+                    console.error(`Canvas context for ${canvasId} not available`);
+                    return null;
+                }
+
+                // Destroy previous instance if it exists and is a Chart object
+                if (chartInstanceVariable && chartInstanceVariable instanceof Chart) {
+                    chartInstanceVariable.destroy();
+                }
+
+                if (!window.Chart) {
+                    console.error('Chart.js library not loaded');
+                    return null; // Return null if Chart.js is not loaded
+                }
+
+                const newChartInstance = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Filled', 'Remaining'],
+                        datasets: [{
+                            data: [percentage, 100 - percentage],
+                            backgroundColor: [color1, color2],
+                            borderWidth: 0,
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        cutout: '70%',
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: { enabled: false }
+                        }
+                    }
+                });
+
+                const labelElement = document.getElementById(labelId);
+                if (labelElement) {
+                    labelElement.innerText = labelText;
+                }
+                const graphContainer = canvas.closest('.graph-container');
+                if (graphContainer) {
+                    graphContainer.style.display = 'flex';
+                }
+                return newChartInstance; // Return the new chart instance
+            }
+
+            const ageForm = document.getElementById('age-form');
+            const ageResult = document.getElementById('age-result');
+            const ageLoading = document.getElementById('age-loading');
+
+            if (ageForm) {
+                ageForm.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    showLoading('age-result', 'age-loading');
+
+                    const name = document.getElementById('name').value.trim();
+                    const dobInput = document.getElementById('dob').value;
+                    const today = new Date('2025-07-12T14:42:00'); // Consistent reference date
+
+                    if (!name) {
+                        ageResult.innerText = 'Please enter your name.';
+                        ageResult.classList.add('error');
+                        hideLoading('age-result', 'age-loading');
+                        return;
+                    }
+                    if (!dobInput) {
+                        ageResult.innerText = 'Please select a valid date of birth.';
+                        ageResult.classList.add('error');
+                        hideLoading('age-result', 'age-loading');
+                        return;
+                    }
+
+                    const dob = new Date(dobInput);
+                    if (isNaN(dob.getTime()) || dob > today) {
+                        ageResult.innerText = 'Please select a valid date of birth in the past.';
+                        ageResult.classList.add('error');
+                        hideLoading('age-result', 'age-loading');
+                        return;
+                    }
+
+                    let ageYears = today.getFullYear() - dob.getFullYear();
+                    let ageMonths = today.getMonth() - dob.getMonth();
+                    let ageDays = today.getDate() - dob.getDate();
+
+                    if (ageDays < 0) {
+                        ageMonths--;
+                        const daysInLastMonth = new Date(today.getFullYear(), today.getMonth(), 0).getDate();
+                        ageDays += daysInLastMonth;
+                    }
+                    if (ageMonths < 0) {
+                        ageYears--;
+                        ageMonths += 12;
+                    }
+
+                    // Calculate total age in various units (more precise using milliseconds)
+                    const diffMilliseconds = today.getTime() - dob.getTime();
+
+                    const totalSeconds = Math.floor(diffMilliseconds / 1000);
+                    const totalMinutes = Math.floor(totalSeconds / 60);
+                    const totalHours = Math.floor(totalMinutes / 60);
+                    const totalDays = Math.floor(totalHours / 24); // Use floor for total days, as partial days might make sense as hours/minutes
+
+                    ageResult.classList.remove('error');
+                    setTimeout(() => {
+                        ageResult.innerHTML = `Hello, ${name}!<br><br>
+                            You are approximately:<br>
+                            <span style="color: #3498db; font-size: 1.1em;">${ageYears} years, ${ageMonths} months, and ${ageDays} days old.</span><br><br>
+                            That's a grand total of:<br>
+                            <span style="color: #2ecc71; font-size: 1.05em;">${totalDays.toLocaleString()} days</span><br>
+                            <span style="color: #f1c40f; font-size: 1.05em;">${totalHours.toLocaleString()} hours</span><br>
+                            <span style="color: #e67e22; font-size: 1.05em;">${totalMinutes.toLocaleString()} minutes</span><br>
+                            <span style="color: #9b59b6; font-size: 1.05em;">${totalSeconds.toLocaleString()} seconds</span>`;
+                        hideLoading('age-result', 'age-loading');
+                    }, 1000);
+                });
+            }
+
+            const bmiForm = document.getElementById('bmi-form');
+            const bmiResult = document.getElementById('bmi-result');
+            const healthLoading = document.getElementById('health-loading');
+
+            if (bmiForm) {
+                bmiForm.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    showLoading('bmi-result', 'health-loading');
+                    const weight = parseFloat(document.getElementById('weight').value);
+                    const height = parseFloat(document.getElementById('height').value);
+
+                    if (isNaN(weight) || isNaN(height) || weight <= 0 || height <= 0) {
+                        bmiResult.innerText = 'Please enter valid weight and height.';
+                        bmiResult.classList.add('error');
+                        hideLoading('bmi-result', 'health-loading');
+                        return;
+                    }
+
+                    const heightMeters = height / 100;
+                    const bmi = weight / (heightMeters * heightMeters);
+
+                    let bmiCategory = '';
+                    let bmiColor = '';
+                    if (bmi < 18.5) {
+                        bmiCategory = 'Underweight';
+                        bmiColor = '#3498db'; // Blue
+                    } else if (bmi >= 18.5 && bmi < 24.9) {
+                        bmiCategory = 'Normal weight';
+                        bmiColor = '#2ecc71'; // Green
+                    } else if (bmi >= 25 && bmi < 29.9) {
+                        bmiCategory = 'Overweight';
+                        bmiColor = '#f39c12'; // Orange
+                    } else {
+                        bmiCategory = 'Obese';
+                        bmiColor = '#e74c3c'; // Red
+                    }
+
+                    bmiResult.classList.remove('error');
+                    setTimeout(() => {
+                        bmiResult.innerHTML = `Your BMI is: <span style="color: ${bmiColor}; font-size: 1.2em;">${bmi.toFixed(2)}</span><br>
+                                               Category: <span style="color: ${bmiColor}; font-size: 1.1em;">${bmiCategory}</span>`;
+                        hideLoading('bmi-result', 'health-loading');
+                    }, 1000);
+                });
+            }
+
+            const birthdayForm = document.getElementById('birthday-form');
+            const birthdayResult = document.getElementById('birthday-result');
+            const milestoneLoading = document.getElementById('milestone-loading');
+
+            if (birthdayForm) {
+                birthdayForm.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    showLoading('birthday-result', 'milestone-loading');
+
+                    const name = document.getElementById('birthday-name').value.trim();
+                    const dobInput = document.getElementById('birthday-dob').value;
+                    const today = new Date('2025-07-12T14:42:00'); // Consistent reference date
+
+                    if (!name) {
+                        birthdayResult.innerText = 'Please enter your name.';
+                        birthdayResult.classList.add('error');
+                        hideLoading('birthday-result', 'milestone-loading');
+                        return;
+                    }
+                    if (!dobInput) {
+                        birthdayResult.innerText = 'Please select a valid date of birth.';
+                        birthdayResult.classList.add('error');
+                        hideLoading('birthday-result', 'milestone-loading');
+                        return;
+                    }
+
+                    const dob = new Date(dobInput);
+                    if (isNaN(dob.getTime()) || dob > today) {
+                        birthdayResult.innerText = 'Please select a valid date of birth in the past.';
+                        birthdayResult.classList.add('error');
+                        hideLoading('birthday-result', 'milestone-loading');
+                        return;
+                    }
+
+                    let lastBirthday = new Date(dob);
+                    lastBirthday.setFullYear(today.getFullYear());
+                    // If birthday this year hasn't happened yet, use last year's birthday
+                    if (lastBirthday > today) {
+                        lastBirthday.setFullYear(today.getFullYear() - 1);
+                    }
+
+                    // Calculate days since last birthday
+                    const oneDay = 1000 * 60 * 60 * 24;
+                    const daysSinceLastBirthday = Math.round(Math.abs(today - lastBirthday) / oneDay); // Use round for precision
+
+
+                    let nextBirthday = new Date(dob);
+                    nextBirthday.setFullYear(today.getFullYear());
+                    // If birthday this year has passed or is today, set to next year
+                    if (nextBirthday <= today) {
+                        nextBirthday.setFullYear(today.getFullYear() + 1);
+                    }
+                    const daysUntilBirthday = Math.ceil((nextBirthday - today) / oneDay);
+
+
+                    const milestoneNeedle = document.getElementById('milestoneNeedle');
+                    const milestoneClock = document.getElementById('milestone-clock');
+                    const milestoneVisualContainer = document.getElementById('milestone-visual-container');
+
+                    // Calculate needle position based on days passed since last birthday
+                    const daysInCurrentYear = (new Date(today.getFullYear(), 1, 29).getMonth() === 1) ? 366 : 365; // Check for leap year
+                    const needleAngle = (daysSinceLastBirthday / daysInCurrentYear) * 360;
+
+                    // Set the needle rotation
+                    milestoneNeedle.style.transform = `translateX(-50%) rotate(${needleAngle}deg)`;
+
+                    // Display clock and chart after calculation
+                    milestoneClock.style.display = 'flex';
+                    milestoneVisualContainer.style.display = 'flex';
+
+                    // Update chart
+                    const percentagePassed = (daysSinceLastBirthday / daysInCurrentYear) * 100;
+                    milestoneChartInstance = createDoughnutChart(
+                        'milestoneChart',
+                        'milestoneChartLabel',
+                        percentagePassed,
+                        `${daysSinceLastBirthday} Days Passed`,
+                        '#e67e22', '#f39c12',
+                        milestoneChartInstance // Pass the current instance
+                    );
+
+                    birthdayResult.classList.remove('error');
+                    setTimeout(() => {
+                        birthdayResult.innerHTML = `Hello, <span style="color: #e67e22;">${name}</span>!<br><br>
+                            Your last birthday was <span style="color: #f39c12; font-size: 1.1em;">${daysSinceLastBirthday} days ago</span>.<br>
+                            Your next birthday is in <span style="color: #5cb85c; font-size: 1.1em;">${daysUntilBirthday} days</span>.`;
+                        hideLoading('birthday-result', 'milestone-loading');
+                    }, 1000);
+                });
+            }
+
+            const expectancyForm = document.getElementById('expectancy-form');
+            const expectancyResult = document.getElementById('expectancy-result');
+            const expectancyLoading = document.getElementById('expectancy-loading');
+
+            if (expectancyForm) {
+                expectancyForm.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    showLoading('expectancy-result', 'expectancy-loading');
+
+                    const name = document.getElementById('expectancy-name').value.trim();
+                    const dobInput = document.getElementById('expectancy-dob').value;
+                    const zodiacValue = document.getElementById('zodiac').value;
+                    const today = new Date('2025-07-12T14:42:00'); // Consistent reference date
+
+                    if (!name) {
+                        expectancyResult.innerText = 'Please enter your name.';
+                        expectancyResult.classList.add('error');
+                        hideLoading('expectancy-result', 'expectancy-loading');
+                        return;
+                    }
+                    if (!dobInput) {
+                        expectancyResult.innerText = 'Please select a valid date of birth.';
+                        expectancyResult.classList.add('error');
+                        hideLoading('expectancy-result', 'expectancy-loading');
+                        return;
+                    }
+                    if (!zodiacValue) {
+                        expectancyResult.innerText = 'Please select your Zodiac Sign.';
+                        expectancyResult.classList.add('error');
+                        hideLoading('expectancy-result', 'expectancy-loading');
+                        return;
+                    }
+
+                    const dob = new Date(dobInput);
+                    if (isNaN(dob.getTime()) || dob > today) {
+                        expectancyResult.innerText = 'Please select a valid date of birth in the past.';
+                        expectancyResult.classList.add('error');
+                        hideLoading('expectancy-result', 'expectancy-loading');
+                        return;
+                    }
+
+                    let currentAgeYears = today.getFullYear() - dob.getFullYear();
+                    const monthDiff = today.getMonth() - dob.getMonth();
+                    const dayDiff = today.getDate() - dob.getDate();
+
+                    if (monthDiff < 0 || (monthDiff === 0 && dayDiff < 0)) {
+                        currentAgeYears--;
+                    }
+
+                    const expectancyRangeString = zodiacValue.match(/\((.*?)\)/);
+                    if (!expectancyRangeString || expectancyRangeString.length < 2) {
+                        expectancyResult.innerText = 'Error parsing zodiac sign expectancy.';
+                        expectancyResult.classList.add('error');
+                        hideLoading('expectancy-result', 'expectancy-loading');
+                        return;
+                    }
+                    const [minExpectancy, maxExpectancy] = expectancyRangeString[1].split('-').map(Number);
+                    const averageExpectancy = Math.round((minExpectancy + maxExpectancy) / 2);
+
+                    const yearsRemaining = Math.max(0, averageExpectancy - currentAgeYears);
+                    const percentageLived = Math.min(100, (currentAgeYears / averageExpectancy) * 100); // Cap at 100%
+
+                    const expectancyNeedle = document.getElementById('expectancyNeedle');
+                    const expectancyClock = document.getElementById('expectancy-clock');
+                    const expectancyChartContainer = document.getElementById('expectancy-chart-container');
+
+                    // Calculate needle angle based on averageExpectancy on a 0-100 scale
+                    const maxYearsOnClock = 100; // The clock goes from 0 to 100
+                    const needleAngle = (averageExpectancy / maxYearsOnClock) * 360;
+                    expectancyNeedle.style.transform = `translateX(-50%) rotate(${needleAngle}deg)`;
+
+                    // Display clock and chart after calculation
+                    expectancyClock.style.display = 'flex';
+                    expectancyChartContainer.style.display = 'flex';
+
+
+                    // Update chart
+                    expectancyChartInstance = createDoughnutChart(
+                        'expectancyChart',
+                        'expectancyChartLabel',
+                        percentageLived,
+                        `${currentAgeYears} Years Old`,
+                        '#9b59b6', '#bdc3c7',
+                        expectancyChartInstance // Pass the current instance
+                    );
+
+                    expectancyResult.classList.remove('error');
+                    setTimeout(() => {
+                        expectancyResult.innerHTML = `Hello, <span style="color: #9b59b6;">${name}</span>!<br><br>
+                            Your current age is <span style="color: #3498db; font-size: 1.1em;">${currentAgeYears} years</span>.<br>
+                            Based on your Zodiac Sign (<span style="color: #f1c40f;">${zodiacValue.split('(')[0].trim()}</span>),<br>
+                            your estimated life expectancy is <span style="color: #2ecc71; font-size: 1.1em;">${minExpectancy}-${maxExpectancy} years</span>.<br>
+                            Approximately <span style="color: #e67e22; font-size: 1.1em;">${yearsRemaining} years remaining</span>.`;
+                        hideLoading('expectancy-result', 'expectancy-loading');
+                    }, 1000);
+                });
+            }
+
+            const contactForm = document.getElementById('contact-form');
+            const contactResult = document.getElementById('contact-result');
+            const contactLoading = document.getElementById('contact-loading');
+
+            if (contactForm) {
+                contactForm.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    showLoading('contact-result', 'contact-loading');
+                    const name = document.getElementById('contact-name').value.trim();
+                    const email = document.getElementById('email').value.trim();
+                    const message = document.getElementById('message').value.trim();
+
+                    if (!name || !email || !message) {
+                        contactResult.innerText = 'Please fill in all fields.';
+                        contactResult.classList.add('error');
+                        hideLoading('contact-result', 'contact-loading');
+                        return;
+                    }
+                    if (!/\S+@\S+\.\S+/.test(email)) {
+                        contactResult.innerText = 'Please enter a valid email address.';
+                        contactResult.classList.add('error');
+                        hideLoading('contact-result', 'contact-loading');
+                        return;
+                    }
+
+                    // Simulate sending data
+                    setTimeout(() => {
+                        contactResult.classList.remove('error');
+                        contactResult.innerHTML = `Thank you, <span style="color: #2ecc71;">${name}</span>! Your message has been sent.`;
+                        contactForm.reset(); // Clear the form
+                        hideLoading('contact-result', 'contact-loading');
+                    }, 1000);
+                });
+            }
+        });
+    </script>
+</body>
+</html>
